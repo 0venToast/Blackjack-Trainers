@@ -4,8 +4,47 @@ import random
 import os
 import winsound
 import sys
+import requests
+import subprocess
+import tempfile
 
-os.chdir(sys._MEIPASS)  # Set the working directory to the location of the executable
+if hasattr(sys, '_MEIPASS'):
+    os.chdir(sys._MEIPASS)
+
+VERSION_URL = "https://raw.githubusercontent.com/0venToast/Blackjack-Trainers/refs/heads/main/hand-version.json"
+version = "1.0.1"
+
+def download_new_version(download_url, temp_path):
+    try:
+        with requests.get(download_url, stream=True) as r:
+            r.raise_for_status()
+            with open(temp_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+        return True
+    except Exception as e:
+        print("Download error:", e)
+        return False
+
+def check_for_updates():
+    try:
+        response = requests.get(VERSION_URL)
+        data = response.json()
+        latest_version = data["version"]
+        download_url = data["url"]
+
+        if version != latest_version:
+            answer = tk.messagebox.askyesno("Update Available", f"A new version ({latest_version}) is available. Update now?")
+            if answer:
+                # Download new file to temp
+                temp_path = os.path.join(tempfile.gettempdir(), "new_version.exe")
+                if download_new_version(download_url, temp_path):
+                    launcher_path = os.path.join(os.path.dirname(sys.executable), "Updater.exe")
+                    subprocess.Popen([launcher_path, sys.executable, temp_path])
+                    root.destroy()
+                    sys.exit()
+    except Exception as e:
+        print("Update check failed:", e)
 
 # Define card values
 cards_values = {
@@ -13,6 +52,9 @@ cards_values = {
     '7': 7, '8': 8, '9': 9, '10': 10,
     'J': 10, 'Q': 10, 'K': 10, 'A': 11
 }
+
+root = tk.Tk()
+check_for_updates()  # Check for updates at the start
 
 # Suits and card ranks
 suits = ['hearts', 'diamonds', 'clubs', 'spades']

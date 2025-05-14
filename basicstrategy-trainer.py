@@ -12,7 +12,7 @@ import tempfile
 if hasattr(sys, '_MEIPASS'):
     os.chdir(sys._MEIPASS)
 
-VERSION_URL = "https://raw.githubusercontent.com/0venToast/Action-Runner/refs/heads/main/version.json"
+VERSION_URL = "https://raw.githubusercontent.com/0venToast/Blackjack-Trainers/refs/heads/main/basicstrategy-version.json"
 version = "1.2.1"
 
 def download_new_version(download_url, temp_path):
@@ -209,5 +209,6 @@ class BlackjackApp:
             print(f"Error playing sound: {e}")  # If there's an error, print it
 
 root = tk.Tk()
+check_for_updates()
 app = BlackjackApp(root)
 root.mainloop()
