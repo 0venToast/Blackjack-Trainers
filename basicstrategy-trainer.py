@@ -87,14 +87,12 @@ def basic_strategy(player_hand, dealer_card, can_split):
         elif total == 17:
             return 'Double' if dealer_val in [3, 4, 5, 6] else 'Hit'
         elif total == 18:
-            if dealer_val in [2, 3, 4, 5, 6]:
+            if dealer_val in [3, 4, 5, 6]:
                 return 'Double' 
-            elif dealer_val in [7, 8]:
+            elif dealer_val in [2, 7, 8]:
                 return 'Stand'
             else: 
                 return 'Hit'
-        elif total == 19:
-            return 'Double' if dealer_val in [6] else 'Stand'
         else:
             return 'Stand'
     else:
@@ -105,7 +103,7 @@ def basic_strategy(player_hand, dealer_card, can_split):
         elif total == 10:
             return 'Double' if dealer_val < 10 else 'Hit'
         elif total == 11:
-            return 'Double'
+            return 'Double' if dealer_val < 11 else 'Hit'
         elif total == 12:
             return 'Hit' if dealer_val in [2, 3, 7, 8, 9, 10, 11] else 'Stand'
         elif total in [13, 14, 15, 16]:
