@@ -128,6 +128,7 @@ class BlackjackApp:
         self.root.title("Basic Strategy Trainer")
         self.frame = tk.Frame(root)
         self.frame.pack()
+        self.root.bind("<Key>", self.handle_keypress)
 
         self.canvas = tk.Canvas(self.frame, width=600, height=325, bg="white")
         self.canvas.pack()
@@ -142,6 +143,17 @@ class BlackjackApp:
 
         self.load_cards()
         self.next_hand()
+
+    def handle_keypress(self, event):
+        key_action_map = {
+            '1': "Hit",
+            '2': "Stand",
+            '3': "Double",
+            '4': "Split"
+        }
+        action = key_action_map.get(event.char)
+        if action:
+            self.check_action(action)
 
     def load_cards(self):
         self.card_images = {}
