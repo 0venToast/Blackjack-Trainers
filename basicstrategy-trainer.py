@@ -133,6 +133,11 @@ class BlackjackApp:
         self.canvas = tk.Canvas(self.frame, width=600, height=325, bg="white")
         self.canvas.pack()
 
+        self.mode_var = tk.StringVar(value="Full")
+        mode_options = ["Full", "Hard Totals Only", "Soft Totals Only", "Pairs Only"]
+        self.mode_menu = tk.OptionMenu(self.frame, self.mode_var, *mode_options)
+        self.mode_menu.pack(pady=5)
+
         self.button_frame = tk.Frame(self.frame)
         self.button_frame.pack(pady=10)
 
@@ -199,7 +204,6 @@ class BlackjackApp:
         correct_action = basic_strategy(self.player_hand, dealer_card, self.can_split())
         if user_action == correct_action:
             self.play_sound("correct_answer.wav")
-            messagebox.showinfo("Correct!", f"{user_action} was the correct move.")
         else:
             self.play_sound("wrong_answer.wav")
             messagebox.showerror("Incorrect", f"{user_action} was not the best move.\nYou should have: {correct_action}")
@@ -211,8 +215,23 @@ class BlackjackApp:
     def next_hand(self):
         while True:
             self.deal_hand()
-            if hand_value(self.player_hand) != 21:
+            value = hand_value(self.player_hand)
+            soft = is_soft(self.player_hand)
+            can_split = self.can_split()
+            mode = self.mode_var.get()
+
+            if value == 21:
+                continue  # Skip blackjack
+
+            if mode == "Full":
                 break
+            elif mode == "Hard Totals Only" and not soft and not can_split:
+                break
+            elif mode == "Soft Totals Only" and soft and not can_split:
+                break
+            elif mode == "Pairs Only" and can_split:
+                break
+
         self.draw_hand()
 
 
