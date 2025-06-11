@@ -197,8 +197,12 @@ class BlackjackApp:
         return self.player_hand[0][0] == self.player_hand[1][0]
 
     def next_hand(self):
-        self.deal_hand()
+        while True:
+            self.deal_hand()
+            if hand_value(self.player_hand) != 21:
+                break
         self.draw_hand()
+
 
     def play_sound(self, sound_file):
         try:
