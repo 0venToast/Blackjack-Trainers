@@ -127,11 +127,14 @@ class BlackjackApp:
         self.root = root
         self.root.title("Basic Strategy Trainer")
         self.frame = tk.Frame(root)
-        self.frame.pack()
+        self.frame.pack(fill=tk.BOTH, expand=True)
         self.root.bind("<Key>", self.handle_keypress)
 
-        self.canvas = tk.Canvas(self.frame, width=600, height=325, bg="white")
-        self.canvas.pack()
+        self.canvas = tk.Canvas(self.frame, bg="white")
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.root.geometry("800x600")
+        self.root.minsize(600, 400)
+        self.canvas.bind("<Configure>", lambda e: self.draw_hand())
 
         self.mode_var = tk.StringVar(value="Full")
         mode_options = ["Full", "Hard Totals Only", "Soft Totals Only", "Pairs Only"]
@@ -142,12 +145,16 @@ class BlackjackApp:
         self.button_frame.pack(pady=10)
 
         self.buttons = {}
-        for action in ["Hit", "Stand", "Double", "Split"]:
-            self.buttons[action] = tk.Button(self.button_frame, text=action, command=lambda a=action: self.check_action(a))
+        actions = [("Hit", "1"), ("Stand", "2"), ("Double", "3"), ("Split", "4")]
+        for action, key in actions:
+            label = f"{key}: {action}"
+            self.buttons[action] = tk.Button(
+                self.button_frame, text=label, command=lambda a=action: self.check_action(a)
+            )
             self.buttons[action].pack(side=tk.LEFT, padx=10)
 
         self.load_cards()
-        self.next_hand()
+        self.root.after(100, self.next_hand)
 
     def handle_keypress(self, event):
         key_action_map = {
@@ -173,23 +180,36 @@ class BlackjackApp:
     def draw_hand(self):
         self.canvas.delete("all")
 
-        # Draw dealer's up card (center top)
+        # --- Dynamic scaling based on canvas height ---
+        scale = self.canvas.winfo_height() / 325  # 325 = base design height
+        card_width = int(CARD_WIDTH * scale)
+        card_height = int(CARD_HEIGHT * scale)
+
+        canvas_width = self.canvas.winfo_width()
+
+        # --- Dealer card ---
         dealer_card = self.dealer_hand[0]
-        dealer_img = self.card_images[f"{dealer_card[0]}_of_{dealer_card[1]}"]
-        dealer_x = (600 - CARD_WIDTH) // 2
+        dealer_path = os.path.join(CARD_PATH, f"{dealer_card[0]}_of_{dealer_card[1]}.jpg")
+        dealer_img_raw = Image.open(dealer_path).resize((card_width, card_height))
+        dealer_img = ImageTk.PhotoImage(dealer_img_raw)
+        self.canvas.image_dealer = dealer_img  # Keep reference
+        dealer_x = (canvas_width - card_width) // 2
         dealer_y = 10
         self.canvas.create_image(dealer_x, dealer_y, image=dealer_img, anchor=tk.NW)
 
-        # Add more vertical space between dealer and player cards
-        vertical_padding = 10  # Adjust this as needed
+        # --- Player cards ---
+        vertical_padding = 10
+        player_y = dealer_y + card_height + vertical_padding
+        total_width = len(self.player_hand) * (card_width + 10) - 10
+        start_x = (canvas_width - total_width) // 2
 
-        # Draw player's cards (center bottom)
-        player_y = dealer_y + CARD_HEIGHT + vertical_padding
-        total_width = len(self.player_hand) * (CARD_WIDTH + 10) - 10
-        start_x = (600 - total_width) // 2
+        self.canvas.image_player = []  # Store all to prevent GC
         for i, card in enumerate(self.player_hand):
-            img = self.card_images[f"{card[0]}_of_{card[1]}"]
-            self.canvas.create_image(start_x + i * (CARD_WIDTH + 10), player_y, image=img, anchor=tk.NW)
+            path = os.path.join(CARD_PATH, f"{card[0]}_of_{card[1]}.jpg")
+            img_raw = Image.open(path).resize((card_width, card_height))
+            img = ImageTk.PhotoImage(img_raw)
+            self.canvas.image_player.append(img)
+            self.canvas.create_image(start_x + i * (card_width + 10), player_y, image=img, anchor=tk.NW)
 
 
 
